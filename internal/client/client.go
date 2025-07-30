@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/thunderjr/sptrans-mcp/internal/auth"
 	"github.com/thunderjr/sptrans-mcp/internal/types"
@@ -31,7 +29,6 @@ func NewClient(authManager *auth.Manager) *Client {
 
 // makeRequest performs an authenticated HTTP request to the SPTrans API
 func (c *Client) makeRequest(ctx context.Context, endpoint string, result interface{}) error {
-	log.New(os.Stderr, "[API] ", log.LstdFlags).Printf("Making API request to: %s", endpoint)
 	
 	if err := c.authManager.EnsureAuthenticated(ctx); err != nil {
 		return fmt.Errorf("authentication failed: %w", err)
@@ -45,22 +42,13 @@ func (c *Client) makeRequest(ctx context.Context, endpoint string, result interf
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "SPTrans-MCP-Server/1.0")
 
-	// Log cookies being sent with the request
-	if c.httpClient.Jar != nil {
-		cookies := c.httpClient.Jar.Cookies(req.URL)
-		log.New(os.Stderr, "[API] ", log.LstdFlags).Printf("Sending cookies: %v", cookies)
-	}
-
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	log.New(os.Stderr, "[API] ", log.LstdFlags).Printf("API response: %d %s", resp.StatusCode, resp.Status)
-
 	if resp.StatusCode != http.StatusOK {
-		log.New(os.Stderr, "[API] ", log.LstdFlags).Printf("API request failed with HTTP %d for %s", resp.StatusCode, endpoint)
 		return &types.APIError{
 			Code:    resp.StatusCode,
 			Message: "API request failed",
@@ -72,7 +60,6 @@ func (c *Client) makeRequest(ctx context.Context, endpoint string, result interf
 		return fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	log.New(os.Stderr, "[API] ", log.LstdFlags).Printf("API request successful for %s", endpoint)
 	return nil
 }
 
