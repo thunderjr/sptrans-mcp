@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/thunderjr/sptrans-mcp/internal/types"
 )
 
 // GetVehiclePositionsParams defines the parameters for getting all vehicle positions
@@ -27,20 +29,18 @@ func GetVehiclePositions(ctx context.Context, ss *mcp.ServerSession, params *mcp
 		}, nil
 	}
 
-	totalVehicles := 0
-	for _, line := range positions.Lines {
-		totalVehicles += line.VehicleQty
-	}
+	response := types.BuildGetVehiclePositionsResponse(*positions)
 
-	response := map[string]interface{}{
-		"timestamp":     positions.Hour,
-		"total_vehicles": totalVehicles,
-		"total_lines":    len(positions.Lines),
-		"positions":      positions,
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -62,21 +62,18 @@ func GetVehiclePositionsByLine(ctx context.Context, ss *mcp.ServerSession, param
 		}, nil
 	}
 
-	totalVehicles := 0
-	for _, line := range positions.Lines {
-		totalVehicles += line.VehicleQty
-	}
+	response := types.BuildGetVehiclePositionsByLineResponse(params.Arguments.LineCode, *positions)
 
-	response := map[string]interface{}{
-		"timestamp":     positions.Hour,
-		"line_code":     params.Arguments.LineCode,
-		"total_vehicles": totalVehicles,
-		"total_lines":    len(positions.Lines),
-		"positions":      positions,
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }

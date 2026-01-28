@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/thunderjr/sptrans-mcp/internal/types"
 )
 
 // SearchLinesParams defines the parameters for searching lines
@@ -35,14 +37,18 @@ func SearchLines(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallToo
 		}, nil
 	}
 
-	response := map[string]interface{}{
-		"total_results": len(lines),
-		"search_term":   params.Arguments.SearchTerm,
-		"lines":         lines,
+	response := types.BuildSearchLinesResponse(len(lines), params.Arguments.SearchTerm, lines)
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -71,15 +77,18 @@ func SearchLineByDirection(ctx context.Context, ss *mcp.ServerSession, params *m
 		}, nil
 	}
 
-	response := map[string]interface{}{
-		"total_results": len(lines),
-		"search_term":   params.Arguments.SearchTerm,
-		"direction":     params.Arguments.Direction,
-		"lines":         lines,
+	response := types.BuildSearchLinesResponse(len(lines), params.Arguments.SearchTerm, lines)
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }

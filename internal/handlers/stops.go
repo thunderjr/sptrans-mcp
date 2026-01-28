@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/thunderjr/sptrans-mcp/internal/types"
 )
 
 // SearchStopsParams defines the parameters for searching stops
@@ -39,14 +41,18 @@ func SearchStops(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallToo
 		}, nil
 	}
 
-	response := map[string]interface{}{
-		"total_results": len(stops),
-		"search_term":   params.Arguments.SearchTerm,
-		"stops":         stops,
+	response := types.BuildSearchStopsResponse(len(stops), params.Arguments.SearchTerm, stops)
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -68,14 +74,18 @@ func GetStopsByLine(ctx context.Context, ss *mcp.ServerSession, params *mcp.Call
 		}, nil
 	}
 
-	response := map[string]interface{}{
-		"total_results": len(stops),
-		"line_code":     params.Arguments.LineCode,
-		"stops":         stops,
+	response := types.BuildGetStopsByLineResponse(len(stops), params.Arguments.LineCode, stops)
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -97,14 +107,18 @@ func GetStopsByCorridor(ctx context.Context, ss *mcp.ServerSession, params *mcp.
 		}, nil
 	}
 
-	response := map[string]interface{}{
-		"total_results":  len(stops),
-		"corridor_code":  params.Arguments.CorridorCode,
-		"stops":          stops,
+	response := types.BuildGetStopsByCorridorResponse(len(stops), params.Arguments.CorridorCode, stops)
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }

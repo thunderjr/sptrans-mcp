@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/thunderjr/sptrans-mcp/internal/types"
 )
 
 // GetArrivalPredictionsParams defines the parameters for getting arrival predictions
@@ -47,21 +49,18 @@ func GetArrivalPredictions(ctx context.Context, ss *mcp.ServerSession, params *m
 		}, nil
 	}
 
-	totalPredictions := 0
-	for _, line := range predictions.Stop.Lines {
-		totalPredictions += len(line.Predictions)
-	}
+	response := types.BuildGetArrivalPredictionsResponse(params.Arguments.StopCode, params.Arguments.LineCode, *predictions)
 
-	response := map[string]interface{}{
-		"timestamp":        predictions.Hour,
-		"stop_code":        params.Arguments.StopCode,
-		"line_code":        params.Arguments.LineCode,
-		"total_predictions": totalPredictions,
-		"predictions":       predictions,
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -83,23 +82,18 @@ func GetArrivalPredictionsByLine(ctx context.Context, ss *mcp.ServerSession, par
 		}, nil
 	}
 
-	totalPredictions := 0
-	for _, stop := range predictions.Stops {
-		for _, line := range stop.Lines {
-			totalPredictions += len(line.Predictions)
-		}
-	}
+	response := types.BuildGetArrivalPredictionsByLineResponse(params.Arguments.LineCode, *predictions)
 
-	response := map[string]interface{}{
-		"timestamp":        predictions.Hour,
-		"line_code":        params.Arguments.LineCode,
-		"total_predictions": totalPredictions,
-		"total_stops":       len(predictions.Stops),
-		"predictions":       predictions,
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
@@ -121,23 +115,18 @@ func GetArrivalPredictionsByStop(ctx context.Context, ss *mcp.ServerSession, par
 		}, nil
 	}
 
-	totalPredictions := 0
-	for _, stop := range predictions.Stops {
-		for _, line := range stop.Lines {
-			totalPredictions += len(line.Predictions)
-		}
-	}
+	response := types.BuildGetArrivalPredictionsByStopResponse(params.Arguments.StopCode, *predictions)
 
-	response := map[string]interface{}{
-		"timestamp":        predictions.Hour,
-		"stop_code":        params.Arguments.StopCode,
-		"total_predictions": totalPredictions,
-		"total_stops":       len(predictions.Stops),
-		"predictions":       predictions,
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return &mcp.CallToolResultFor[any]{
+			IsError: true,
+			Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Failed to marshal response: %v", err)}},
+		}, nil
 	}
 
 	return &mcp.CallToolResultFor[any]{
-		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%+v", response)}},
+		Content: []mcp.Content{&mcp.TextContent{Text: string(responseJSON)}},
 		StructuredContent: response,
 	}, nil
 }
